@@ -1,6 +1,3 @@
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_video.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
@@ -40,9 +37,7 @@ int main(int argc, char** args) {
 	
 	// Preenche com uma cor (cinza) 128, 128, 128
 	Uint32 color = SDL_MapRGB(winSurface->format, 128, 128, 128);
-	SDL_UpdateWindowSurface(window);
-
-	// Atualiza janela
+	SDL_FillRect(winSurface, NULL, color);
 	SDL_UpdateWindowSurface(window);
 
 	// Loop de exibição da janela
@@ -72,4 +67,3 @@ int main(int argc, char** args) {
 
 	return 0;
 }
-
