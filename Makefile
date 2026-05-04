@@ -1,34 +1,44 @@
-# Variáveis de Compilador e Flags
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -Iinclude $(shell sdl2-config --cflags)
+# ============================================================
+#  Compilador
+# ============================================================
+CC      = gcc
+CFLAGS  = -Wall -Wextra -std=c11 -Iinclude $(shell sdl2-config --cflags)
 LDFLAGS = $(shell sdl2-config --libs) -lm
 
-# Pastas
+# ============================================================
+#  Diretórios
+# ============================================================
 SRC_DIR = src
 OBJ_DIR = build
 BIN_DIR = bin
 
-# Nome do Executável
+# ============================================================
+#  Alvo final
+# ============================================================
 TARGET = $(BIN_DIR)/raygrid
 
-# Localizar todos os arquivos .c na pasta src
+# ============================================================
+#  Fontes e objetos (detectados automaticamente)
+# ============================================================
 SRCS = $(wildcard $(SRC_DIR)/*.c)
-# Transformar a lista de .c em uma lista de .o na pasta build
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
+# ============================================================
+#  Regras
+# ============================================================
 all: $(TARGET)
 
-# Linkagem final do executável
+# Linka os objetos no executável final
 $(TARGET): $(OBJS)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
-# Compilação dos arquivos de objeto (.o)
+# Compila cada .c em seu respectivo .o
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Limpeza
+# Remove artefatos de build
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
