@@ -1,14 +1,6 @@
+#include <stdbool.h>
 #include "map.h"
-
-#define WALL {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-#define EMPTY {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}
+#include "config.h"
 
 int worldMap[MAP_HEIGHT][MAP_WIDTH] = {
-    WALL,
-    EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-    EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-    EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-    EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-    EMPTY, EMPTY,
-    WALL,
 };

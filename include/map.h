@@ -1,10 +1,20 @@
 #ifndef MAP_H
 #define MAP_H
 
-#define MAP_WIDTH  24
-#define MAP_HEIGHT 24
+#include "config.h"
+typedef enum {
+    EMPTY = 0,
+    LIMIT = 1,
+    WALL = 2,
+    SPAWN = 3
+} TileType;
 
-// 0 = vazio, 1/2/3 = tipos de parede
+typedef struct {
+    TileType currentSelection;
+    bool hasSpawn;
+    int spawnX, spawnY;
+} EditorState;
+
 extern int worldMap[MAP_HEIGHT][MAP_WIDTH];
 
 #endif
