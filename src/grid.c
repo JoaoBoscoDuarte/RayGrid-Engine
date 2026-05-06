@@ -3,8 +3,11 @@
 #include <SDL2/SDL.h>
 #include "config.h"
 #include "map.h"
+#include "log.h"
 
 static void render_grid(SDL_Surface *surface) {
+    LOG_DEBUG("rendering grid");
+
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
             Uint8 r, g, b;
@@ -17,8 +20,10 @@ static void render_grid(SDL_Surface *surface) {
 }
 
 int main(void) {
+    LOG_INFO("initializing SDL");
+
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        printf("Erro SDL_Init: %s\n", SDL_GetError());
+        LOG_ERROR("SDL_Init failed: %s", SDL_GetError());
         return 1;
     }
 
@@ -28,14 +33,19 @@ int main(void) {
         SCREEN_WIDTH, SCREEN_HEIGHT,
         SDL_WINDOW_SHOWN
     );
+
     if (!window) {
-        printf("Erro ao criar janela: %s\n", SDL_GetError());
+        LOG_ERROR("failed to create window: %s", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
+    LOG_INFO("window created successfully");
+
     SDL_Surface *surface = SDL_GetWindowSurface(window);
-    EditorState editor = { .currentSelection = WALL, .hasSpawn = false };
+    EditorState editor = {.currentSelection = WALL, .hasSpawn = false};
+
+    LOG_INFO("loading map");
     map_load(&editor);
 
     bool running = true;
@@ -43,21 +53,48 @@ int main(void) {
     char title[128];
 
     while (running) {
+        LOG_DEBUG("frame start | running=%d", running);
+
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) running = false;
+
+            if (event.type == SDL_QUIT) {
+                LOG_INFO("quit event received");
+                running = false;
+            }
 
             if (event.type == SDL_KEYDOWN) {
+                LOG_DEBUG("key pressed: %s", SDL_GetKeyName(event.key.keysym.sym));
+
                 switch (event.key.keysym.sym) {
-                    case SDLK_x:     running = false; break;
+                    case SDLK_x:
+                        LOG_INFO("exit requested (X pressed)");
+                        running = false;
+                        break;
+
                     case SDLK_RETURN:
                         if (editor.hasSpawn) {
+                            LOG_INFO("saving map and exiting");
                             map_save(&editor);
-                            running = false; // TODO: iniciar jogo
+                            running = false;
+                        } else {
+                            LOG_WARN("spawn not set, map not saved");
                         }
                         break;
-                    case SDLK_1: editor.currentSelection = EMPTY; break;
-                    case SDLK_2: editor.currentSelection = WALL;  break;
-                    case SDLK_3: editor.currentSelection = SPAWN; break;
+
+                    case SDLK_1:
+                        editor.currentSelection = EMPTY;
+                        LOG_INFO("selection changed to EMPTY");
+                        break;
+
+                    case SDLK_2:
+                        editor.currentSelection = WALL;
+                        LOG_INFO("selection changed to WALL");
+                        break;
+
+                    case SDLK_3:
+                        editor.currentSelection = SPAWN;
+                        LOG_INFO("selection changed to SPAWN");
+                        break;
                 }
             }
 
@@ -65,24 +102,34 @@ int main(void) {
                 int gridX = event.button.x / TILE_SIZE;
                 int gridY = event.button.y / TILE_SIZE;
 
-                // Impede sobrescrever as bordas
-                if (worldMap[gridY][gridX] == LIMIT) break;
+                LOG_DEBUG("mouse click at (%d, %d) -> grid (%d, %d)",
+                          event.button.x, event.button.y, gridX, gridY);
 
-                // SPAWN: só um permitido
+                if (worldMap[gridY][gridX] == LIMIT) {
+                    LOG_WARN("attempt to modify LIMIT tile at (%d, %d)", gridX, gridY);
+                    break;
+                }
+
                 if (editor.currentSelection == SPAWN) {
-                    if (editor.hasSpawn) break;
+                    if (editor.hasSpawn) {
+                        LOG_WARN("spawn already exists, ignoring new spawn");
+                        break;
+                    }
                     editor.hasSpawn = true;
                     editor.spawnX = gridX;
                     editor.spawnY = gridY;
+                    LOG_INFO("spawn set at (%d, %d)", gridX, gridY);
                 }
 
-                // Remove spawn anterior se estiver apagando a célula
                 if (editor.currentSelection == EMPTY &&
                     gridX == editor.spawnX && gridY == editor.spawnY) {
                     editor.hasSpawn = false;
+                    LOG_INFO("spawn removed from (%d, %d)", gridX, gridY);
                 }
 
                 worldMap[gridY][gridX] = editor.currentSelection;
+                LOG_DEBUG("tile updated at (%d, %d) -> type=%d",
+                          gridX, gridY, editor.currentSelection);
             }
         }
 
@@ -95,13 +142,20 @@ int main(void) {
             case SPAWN: sel_name = "[3] Spawn";   break;
             default:    sel_name = "[1] Apagar";  break;
         }
+
         SDL_snprintf(title, sizeof(title),
             "RayGrid Editor | Selecionado: %s | [1] Apagar  [2] Parede  [3] Spawn  %s  [X] Sair",
             sel_name, editor.hasSpawn ? "[Enter] Jogar" : "[Enter] Jogar (precisa de Spawn)");
+
         SDL_SetWindowTitle(window, title);
     }
 
+    LOG_INFO("shutting down");
+
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    LOG_INFO("SDL terminated");
+
     return 0;
 }
