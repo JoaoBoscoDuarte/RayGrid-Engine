@@ -11,6 +11,7 @@ LDFLAGS = $(shell sdl2-config --libs) -lm
 SRC_DIR = src
 OBJ_DIR = build
 BIN_DIR = bin
+LOG_DIR = logs
 
 # ============================================================
 #  Alvo final
@@ -40,6 +41,6 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 
 # Remove artefatos de build
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LOG_DIR)
 
 .PHONY: all clean

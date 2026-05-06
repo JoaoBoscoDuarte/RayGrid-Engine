@@ -15,6 +15,8 @@ typedef enum {
 extern LogLevel CURRENT_LOG_LEVEL;
 
 // Função base
+void log_init(const char *path);
+void log_close(void);
 void log_message(LogLevel level, const char *file, int line, const char *fmt, ...);
 
 // Macros (o que você vai usar no código)
