@@ -7,44 +7,25 @@
 #include "config.h"
 #include "map.h"
 #include "log.h"
-
-static void resolve_path(const char *relative, char *out, size_t size) {
-    
-    char exe[512] = {0};
-    readlink("/proc/self/exe", exe, sizeof(exe) - 1);
-    char *slash = strrchr(exe, '/');
-    
-    if (slash) *slash = '\0';
-    slash = strrchr(exe, '/');
-
-    if (slash) *slash = '\0';
-    snprintf(out, size, "%s/%s", exe, relative);
-}
+#include "grid.h"
 
 static void render_grid(SDL_Surface *surface) {
-    LOG_DEBUG("rendering grid");
-
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
             Uint8 r, g, b;
             map_get_tile_color((TileType)worldMap[y][x], &r, &g, &b);
-
             SDL_Rect rect = { x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 1, TILE_SIZE - 1 };
             SDL_FillRect(surface, &rect, SDL_MapRGB(surface->format, r, g, b));
         }
     }
 }
 
-int main(void) {
-    char log_path[512];
-    resolve_path("logs/session.log", log_path, sizeof(log_path));
-    log_init(log_path);
-
-    LOG_INFO("initializing SDL");
+int grid_run(void) {
+    int result = -1;
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         LOG_ERROR("SDL_Init failed: %s", SDL_GetError());
-        return 1;
+        return -1;
     }
 
     SDL_Window *window = SDL_CreateWindow(
@@ -57,7 +38,7 @@ int main(void) {
     if (!window) {
         LOG_ERROR("failed to create window: %s", SDL_GetError());
         SDL_Quit();
-        return 1;
+        return -1;
     }
 
     LOG_INFO("window created successfully");
@@ -73,8 +54,6 @@ int main(void) {
     char title[128];
 
     while (running) {
-        LOG_DEBUG("frame start | running=%d", running);
-
         while (SDL_PollEvent(&event)) {
 
             if (event.type == SDL_QUIT) {
@@ -93,8 +72,9 @@ int main(void) {
 
                     case SDLK_RETURN:
                         if (editor.hasSpawn) {
-                            LOG_INFO("saving map and exiting");
+                            LOG_INFO("saving map and exiting editor");
                             map_save(&editor);
+                            result = 0;
                             running = false;
                         } else {
                             LOG_WARN("spawn not set, map not saved");
@@ -170,13 +150,9 @@ int main(void) {
         SDL_SetWindowTitle(window, title);
     }
 
-    LOG_INFO("shutting down");
-
+    LOG_INFO("shutting down editor");
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    LOG_INFO("SDL terminated");
-    log_close();
-
-    return 0;
+    return result;
 }
