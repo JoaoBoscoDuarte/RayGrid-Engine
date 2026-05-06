@@ -8,4 +8,11 @@
 #define MAP_WIDTH (SCREEN_WIDTH / TILE_SIZE)
 #define MAP_HEIGHT (SCREEN_HEIGHT / TILE_SIZE)
 
+// ============================================================
+//  Caminhos de arquivos
+// ============================================================
+#define MAP_DAT     PROJECT_ROOT "/assets/map.dat"
+#define LOG_MAP     PROJECT_ROOT "/logs/map.log"
+#define LOG_SESSION PROJECT_ROOT "/logs/session.log"
+
 #endif

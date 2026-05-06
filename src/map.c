@@ -1,31 +1,9 @@
-#define _POSIX_C_SOURCE 200809L
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
-#include <string.h>
-#include <unistd.h>
 #include "map.h"
 #include "config.h"
 #include "log.h"
-
-static void project_path(const char *relative, char *out, size_t size) {
-    char exe[512] = {0};
-
-    if (readlink("/proc/self/exe", exe, sizeof(exe) - 1) == -1) {
-        LOG_ERROR("failed to resolve executable path");
-        return;
-    }
-
-    char *slash = strrchr(exe, '/');
-    if (slash) *slash = '\0';
-
-    slash = strrchr(exe, '/');
-    if (slash) *slash = '\0';
-
-    snprintf(out, size, "%s/%s", exe, relative);
-
-    LOG_DEBUG("resolved path: %s", out);
-}
 
 #define L {LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT,LIMIT}
 #define E {LIMIT,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,LIMIT}
@@ -42,92 +20,50 @@ int worldMap[MAP_HEIGHT][MAP_WIDTH] = {
 #undef E
 
 void map_save(const EditorState *editor) {
-    char path[512];
-
-    project_path("assets/map.dat", path, sizeof(path));
-    LOG_INFO("saving map to %s", path);
-
-    FILE *f = fopen(path, "wb");
-    if (!f) {
-        LOG_ERROR("failed to open map file for writing");
-        return;
-    }
-
+    FILE *f = fopen(MAP_DAT, "wb");
+    if (!f) { LOG_ERROR("failed to open map file for writing"); return; }
     fwrite(worldMap, sizeof(worldMap), 1, f);
     fwrite(editor, sizeof(EditorState), 1, f);
     fclose(f);
 
-    LOG_DEBUG("map binary data written successfully");
-
-    project_path("logs/map.log", path, sizeof(path));
-    f = fopen(path, "a");
-    if (!f) {
-        LOG_WARN("could not open log file for append");
-        return;
-    }
+    f = fopen(LOG_MAP, "a");
+    if (!f) { LOG_WARN("could not open map.log"); return; }
 
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
-
     fprintf(f, "[%04d-%02d-%02d %02d:%02d:%02d] Mapa salvo | spawn=(%d,%d)\n",
         t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
         t->tm_hour, t->tm_min, t->tm_sec,
         editor->spawnX, editor->spawnY);
 
     fprintf(f, "  Mapa:\n");
-
     for (int y = 0; y < MAP_HEIGHT; y++) {
         fprintf(f, "  ");
         for (int x = 0; x < MAP_WIDTH; x++)
             fprintf(f, "%d ", worldMap[y][x]);
-
         fprintf(f, "\n");
     }
     fprintf(f, "\n");
-
     fclose(f);
 
-    LOG_INFO("map saved successfully | spawn=(%d,%d)", editor->spawnX, editor->spawnY);
+    LOG_INFO("map saved | spawn=(%d,%d)", editor->spawnX, editor->spawnY);
 }
 
 bool map_load(EditorState *editor) {
-    char path[512];
-
-    project_path("assets/map.dat", path, sizeof(path));
-    LOG_INFO("loading map from %s", path);
-
-    FILE *f = fopen(path, "rb");
-    if (!f) {
-        LOG_WARN("map file not found, using default map");
-        return false;
-    }
-
+    FILE *f = fopen(MAP_DAT, "rb");
+    if (!f) { LOG_WARN("map file not found, using default"); return false; }
     fread(worldMap, sizeof(worldMap), 1, f);
     fread(editor, sizeof(EditorState), 1, f);
     fclose(f);
-
-    LOG_INFO("map loaded successfully | spawn=(%d,%d)",
-             editor->spawnX, editor->spawnY);
-
+    LOG_INFO("map loaded | spawn=(%d,%d)", editor->spawnX, editor->spawnY);
     return true;
 }
 
 void map_get_tile_color(TileType tile, uint8_t *r, uint8_t *g, uint8_t *b) {
     switch (tile) {
-        case LIMIT:
-            *r = 180; *g = 180; *b = 180;
-            break;
-
-        case WALL:
-            *r = 70; *g = 130; *b = 180;
-            break;
-
-        case SPAWN:
-            *r = 220; *g = 50; *b = 50;
-            break;
-
-        default:
-            *r = 50; *g = 50; *b = 50;
-            break;
+        case LIMIT: *r = 180; *g = 180; *b = 180; break;
+        case WALL:  *r =  70; *g = 130; *b = 180; break;
+        case SPAWN: *r = 220; *g =  50; *b =  50; break;
+        default:    *r =  50; *g =  50; *b =  50; break;
     }
 }

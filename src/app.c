@@ -1,24 +1,9 @@
-#define _POSIX_C_SOURCE 200809L
-#include <string.h>
-#include <unistd.h>
+#include "config.h"
 #include "log.h"
 #include "grid.h"
 
-static void resolve_path(const char *relative, char *out, size_t size) {
-    char exe[512] = {0};
-    readlink("/proc/self/exe", exe, sizeof(exe) - 1);
-    char *slash = strrchr(exe, '/');
-    if (slash) *slash = '\0';
-    
-    slash = strrchr(exe, '/');
-    if (slash) *slash = '\0';
-    snprintf(out, size, "%s/%s", exe, relative);
-}
-
 int main(void) {
-    char log_path[512];
-    resolve_path("logs/session.log", log_path, sizeof(log_path));
-    log_init(log_path);
+    log_init(LOG_SESSION);
 
     LOG_INFO("app started");
 

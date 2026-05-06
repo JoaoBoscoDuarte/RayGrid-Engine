@@ -2,7 +2,9 @@
 #  Compilador
 # ============================================================
 CC      = gcc
-CFLAGS  = -Wall -Wextra -std=c11 -Iinclude $(shell sdl2-config --cflags)
+PROJECT_ROOT = $(abspath .)
+CFLAGS  = -Wall -Wextra -std=c11 -Iinclude $(shell sdl2-config --cflags) \
+           -DPROJECT_ROOT='"$(PROJECT_ROOT)"'
 LDFLAGS = $(shell sdl2-config --libs) -lm
 
 # ============================================================
