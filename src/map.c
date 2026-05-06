@@ -8,7 +8,6 @@
 #include "config.h"
 #include "log.h"
 
-// Resolve caminho relativo à raiz do projeto
 static void project_path(const char *relative, char *out, size_t size) {
     char exe[512] = {0};
 

@@ -23,14 +23,12 @@ void log_message(LogLevel level, const char *file, int line, const char *fmt, ..
     va_list args;
     va_start(args, fmt);
 
-    // Terminal com cor
     fprintf(stderr, "%s[%s]%s (%s:%d): ", level_colors[level], level_strings[level], COLOR_RESET, file, line);
     vfprintf(stderr, fmt, args);
     fprintf(stderr, "\n");
 
     va_end(args);
 
-    // Arquivo sem cor
     if (log_file) {
         va_start(args, fmt);
         fprintf(log_file, "[%s] (%s:%d): ", level_strings[level], file, line);

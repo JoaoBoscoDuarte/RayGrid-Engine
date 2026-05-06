@@ -19,7 +19,7 @@ void log_init(const char *path);
 void log_close(void);
 void log_message(LogLevel level, const char *file, int line, const char *fmt, ...);
 
-// Macros (o que você vai usar no código)
+// Macros
 #define LOG_DEBUG(...) log_message(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_INFO(...)  log_message(LOG_LEVEL_INFO,  __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_WARN(...)  log_message(LOG_LEVEL_WARN,  __FILE__, __LINE__, __VA_ARGS__)
