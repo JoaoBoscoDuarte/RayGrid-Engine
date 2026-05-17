@@ -1,6 +1,7 @@
 #include "config.h"
 #include "log.h"
 #include "grid.h"
+#include "player.h"
 
 int main(void) {
     log_init(LOG_SESSION);
